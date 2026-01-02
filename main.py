@@ -1,32 +1,36 @@
-import datetime
+import os
+from flask import Flask, request, jsonify, abort
+from datetime import datetime
 
-from fastapi import Request, FastAPI, APIRouter
+# Create Flask app
+app = Flask(__name__)
 
-app = FastAPI(title="Assistente WhatsApp")
+# Set port and verify_token
+PORT = int(os.environ.get("PORT", 3000))
+VERIFY_TOKEN = os.environ.get("VERIFY_TOKEN")
 
-# router = APIRouter(prefix="/webhook")
-# app.include_router(router)
+# Route for GET requests (webhook verification)
+@app.route("/", methods=["GET"])
+def verify_webhook():
+    mode = request.args.get("hub.mode")
+    challenge = request.args.get("hub.challenge")
+    token = request.args.get("hub.verify_token")
 
-@app.post("/webhook")
-async def catch_all(path: str, request: Request):
-    body = await request.body()
-    headers = dict(request.headers)
+    if mode == "subscribe" and token == VERIFY_TOKEN:
+        print("WEBHOOK VERIFIED")
+        return challenge, 200
+    else:
+        abort(403)
 
-    print("==== NOVO WEBHOOK ====")
-    print("Path:", path)
-    print("Headers:", headers)
-    print("Body:", body.decode())
+# Route for POST requests (receive webhook events)
+@app.route("/", methods=["POST"])
+def receive_webhook():
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"\n\nWebhook received {timestamp}\n")
+    print(request.get_json(indent=2, force=True))
+    return "", 200
 
-    return {
-        "status": "received",
-        "timestamp": datetime.datetime.now().isoformat()
-    }
-
-@app.get("/webhook")
-async def webhook(request: Request):
-    body = await request.body()
-    print("==== NOVO WEBHOOK ====")
-    print("Path:", body)
-    print("Headers:", request.headers)
-    print("Body:", body.decode())
-    return {}
+# Start the server
+if __name__ == "__main__":
+    print(f"\nListening on port {PORT}\n")
+    app.run(host="0.0.0.0", port=PORT)
