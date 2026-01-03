@@ -27,7 +27,7 @@ def verify_webhook():
 def receive_webhook():
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"\n\nWebhook received {timestamp}\n")
-    print(request.get_json(indent=2, force=True))
+    print(request.get_json())
     return "", 200
 
 # Start the server
