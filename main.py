@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, jsonify, abort
+from flask import Flask, request, abort
 from datetime import datetime
 
 # Create Flask app
@@ -17,7 +17,7 @@ def verify_webhook():
     token = request.args.get("hub.verify_token")
 
     if mode == "subscribe" and token == VERIFY_TOKEN:
-        print("WEBHOOK VERIFIED")
+        print("WEBHOOK VERIFIED", flush=True)
         return challenge, 200
     else:
         abort(403)
@@ -26,11 +26,13 @@ def verify_webhook():
 @app.route("/", methods=["POST"])
 def receive_webhook():
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"\n\nWebhook received {timestamp}\n")
-    print(request.get_json())
+    print(f"\n\nWebhook received {timestamp}\n", flush=True)
+    print(request.get_json(), flush=True)
     return "", 200
+
+
 
 # Start the server
 if __name__ == "__main__":
-    print(f"\nListening on port {PORT}\n")
+    print(f"\nListening on port {PORT}\n", flush=True)
     app.run(host="0.0.0.0", port=PORT)
